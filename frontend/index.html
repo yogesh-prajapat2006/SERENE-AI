@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SERENE-AI · Your space to feel better</title>
+  <meta name="description" content="SERENE-AI is a calm space for everyday wellbeing: chat, habits, music and reflection.">
+  <meta name="theme-color" content="#173F35">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23173F35'/%3E%3Cpath d='M16 25v-9M16 16c0-5 4-8 9-8 0 5-4 8-9 8zM16 20c0-4-3-6-8-6 0 4 3 6 8 6z' fill='none' stroke='%23A8C3AE' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+
+  <!--
+    API_BASE_URL
+    - Served by Flask (normal case): keep it empty, the app uses relative paths like /health.
+    - Opened from another server (e.g. VS Code Live Server): set it to "http://127.0.0.1:5000".
+      (The backend already allows cross-origin requests; see CORS_ORIGINS in README.)
+  -->
+  <script>window.SERENE_CONFIG = { apiBaseUrl: "" };</script>
+</head>
+<body>
+
+<!-- Icon sprite (decorative icons are referenced with <use>) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M12 21v-8"/><path d="M12 13c0-4.5 3.2-7 8-7 0 4.5-3.200 7-8 7z"/><path d="M12 16.500c0-3.300-2.700-5.500-7-5.500 0 3.300 2.700 5.500 7 5.500z"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.600 7.100L4 20l1-4.600A8 8 0 1 1 21 12z"/></symbol>
+    <symbol id="i-sprout" viewBox="0 0 24 24"><path d="M12 21v-9"/><path d="M12 12c0-4 3-6 7-6 0 4-3 6-7 6z"/><path d="M12 15c0-3-2.500-5-6-5 0 3 2.500 5 6 5z"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.500 3.500a2.100 2.100 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.500"/><rect x="14" y="3" width="7" height="7" rx="1.500"/><rect x="3" y="14" width="7" height="7" rx="1.500"/><rect x="14" y="14" width="7" height="7" rx="1.500"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.700"/><path d="M21 3v6h-6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5"/><path d="M12 18h.01"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  </defs>
+</svg>
+
+<a class="skip-link" href="#main">Skip to main content</a>
+<div class="nav-overlay" id="nav-overlay" hidden></div>
+
+<div class="app">
+
+  <!-- ============ Sidebar ============ -->
+  <aside class="sidebar" id="sidebar" aria-label="Sidebar">
+    <div class="brand">
+      <span class="brand__mark" aria-hidden="true"><svg class="icon"><use href="#i-leaf"/></svg></span>
+      <span class="brand__name">SERENE-AI</span>
+      <button class="icon-btn sidebar__close" id="nav-close" type="button" aria-label="Close menu">
+        <svg class="icon" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+    </div>
+
+    <nav class="nav" aria-label="Main">
+      <a class="nav__link" href="#dashboard" data-nav="dashboard"><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg><span>Dashboard</span></a>
+      <a class="nav__link" href="#chat" data-nav="chat"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg><span>AI Wellness Chat</span></a>
+      <a class="nav__link" href="#habit" data-nav="habit"><svg class="icon" aria-hidden="true"><use href="#i-sprout"/></svg><span>Habit Coach</span></a>
+      <a class="nav__link" href="#music" data-nav="music"><svg class="icon" aria-hidden="true"><use href="#i-music"/></svg><span>Music Therapy</span></a>
+      <a class="nav__link" href="#writing" data-nav="writing"><svg class="icon" aria-hidden="true"><use href="#i-pen"/></svg><span>Writing Therapy</span></a>
+      <a class="nav__link" href="#clusters" data-nav="clusters"><svg class="icon" aria-hidden="true"><use href="#i-grid"/></svg><span>Habit Clustering</span></a>
+      <a class="nav__link" href="#about" data-nav="about"><svg class="icon" aria-hidden="true"><use href="#i-info"/></svg><span>About &amp; Status</span></a>
+    </nav>
+
+    <p class="sidebar__note">SERENE-AI offers general wellness support. It is not a replacement for professional care.</p>
+  </aside>
+
+  <!-- ============ Main column ============ -->
+  <div class="main-col">
+
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="nav-open" type="button" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
+        <svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg>
+      </button>
+
+      <div class="topbar__title">
+        <h1>Your space to feel better.</h1>
+        <p>Take a breath. Small, kind steps count.</p>
+      </div>
+
+      <div class="topbar__tools">
+        <button class="status-pill" id="status-pill" type="button" data-state="checking" aria-live="polite">
+          <span class="status-pill__dot" aria-hidden="true"></span>
+          <span class="status-pill__text" id="status-text">Connecting…</span>
+        </button>
+        <div class="avatar" role="img" aria-label="Guest (no account)" title="Guest">
+          <svg class="icon" aria-hidden="true"><use href="#i-user"/></svg>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="content">
+
+      <!-- ===== Dashboard ===== -->
+      <section class="view" id="view-dashboard" data-view="dashboard" aria-labelledby="dashboard-title">
+        <div class="hero">
+          <div class="hero__text">
+            <p class="eyebrow eyebrow--light">Welcome to SERENE-AI</p>
+            <h2 id="dashboard-title" tabindex="-1">A calm place for your everyday wellbeing.</h2>
+            <p>Talk things through, try a gentle habit, find music for your mood or take a moment to reflect. Everything here is a small, supportive nudge, not a diagnosis or treatment.</p>
+            <div class="hero__actions">
+              <a class="btn btn--light" href="#chat">Start a conversation <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+              <a class="btn btn--outline-light" href="#about">How it works</a>
+            </div>
+          </div>
+          <svg class="hero__art" viewBox="0 0 520 340" aria-hidden="true" focusable="false" preserveAspectRatio="xMaxYMax slice">
+            <circle cx="392" cy="96" r="70" fill="#A8C3AE" opacity=".16"/>
+            <circle cx="392" cy="96" r="46" fill="#EAE7DD" opacity=".92"/>
+            <path d="M0 236C84 186 168 196 250 232S410 268 520 210V340H0Z" fill="#A8C3AE" opacity=".30"/>
+            <path d="M0 272C104 232 196 252 286 272S434 298 520 258V340H0Z" fill="#A8C3AE" opacity=".52"/>
+            <path d="M0 306C124 282 224 298 324 310S462 322 520 298V340H0Z" fill="#F7F8F3" opacity=".92"/>
+            <g transform="translate(250 0)" fill="none" stroke="#F7F8F3" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".9">
+              <path d="M96 318V258"/>
+              <path d="M96 258c0-24 18-38 44-38 0 24-18 38-44 38z"/>
+              <path d="M96 282c0-18-14-30-36-30 0 18 14 30 36 30z"/>
+            </g>
+            <g fill="#173F35" opacity=".55">
+              <circle cx="300" cy="60" r="2.500"/><circle cx="330" cy="38" r="2"/><circle cx="268" cy="34" r="1.800"/><circle cx="452" cy="52" r="2.200"/>
+            </g>
+          </svg>
+        </div>
+
+        <h2 class="section-title">Explore</h2>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <span class="feature-card__icon"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg></span>
+            <h3>AI Wellness Chat</h3>
+            <p>Write how you feel and get a gentle reply that follows the tone of your message.</p>
+            <a class="btn btn--secondary" href="#chat">Open chat <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          </article>
+          <article class="feature-card">
+            <span class="feature-card__icon"><svg class="icon" aria-hidden="true"><use href="#i-sprout"/></svg></span>
+            <h3>Personalized Habit Coach</h3>
+            <p>Answer four quick questions and get a habit suggestion with the reason behind it.</p>
+            <a class="btn btn--secondary" href="#habit">Get a habit <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          </article>
+          <article class="feature-card">
+            <span class="feature-card__icon"><svg class="icon" aria-hidden="true"><use href="#i-music"/></svg></span>
+            <h3>Music Therapy</h3>
+            <p>Pick a mood and listen to a playlist from your server's music library.</p>
+            <a class="btn btn--secondary" href="#music">Find music <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          </article>
+          <article class="feature-card">
+            <span class="feature-card__icon"><svg class="icon" aria-hidden="true"><use href="#i-pen"/></svg></span>
+            <h3>Writing Therapy</h3>
+            <p>Choose your mood to receive a writing prompt, then reflect in a private notes space.</p>
+            <a class="btn btn--secondary" href="#writing">Start writing <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          </article>
+          <article class="feature-card">
+            <span class="feature-card__icon"><svg class="icon" aria-hidden="true"><use href="#i-grid"/></svg></span>
+            <h3>Habit Clustering</h3>
+            <p>Tell us how many minutes you have and see which habits fit into that time.</p>
+            <a class="btn btn--secondary" href="#clusters">Explore habits <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          </article>
+        </div>
+      </section>
+
+      <!-- ===== Chat ===== -->
+      <section class="view" id="view-chat" data-view="chat" hidden aria-labelledby="chat-title">
+        <header class="view-head">
+          <p class="eyebrow">AI Wellness Chat</p>
+          <h2 id="chat-title" tabindex="-1">Talk it through</h2>
+          <p>Share what is on your mind. Replies follow the tone of your message.</p>
+        </header>
+
+        <div class="chat card">
+          <div class="chat__log" id="chat-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="Conversation" tabindex="0"></div>
+
+          <form class="composer" id="chat-form" novalidate>
+            <label class="sr-only" for="chat-input">Your message</label>
+            <textarea id="chat-input" name="input" rows="1" maxlength="1000" placeholder="Write how you feel…" autocomplete="off"></textarea>
+            <button class="btn btn--primary" id="chat-send" type="submit">
+              <svg class="icon" aria-hidden="true"><use href="#i-send"/></svg><span>Send</span>
+            </button>
+          </form>
+          <p class="field-error" id="chat-error" role="alert" hidden></p>
+
+          <div class="chat__foot">
+            <p class="note">SERENE-AI is a simple wellness chatbot, not a therapist or a crisis service. If you might be in danger, contact your local emergency number or someone you trust.</p>
+            <button class="btn btn--ghost btn--small" id="chat-clear" type="button">Clear conversation</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Habit coach ===== -->
+      <section class="view" id="view-habit" data-view="habit" hidden aria-labelledby="habit-title">
+        <header class="view-head">
+          <p class="eyebrow">Habit Coach</p>
+          <h2 id="habit-title" tabindex="-1">Find a habit that fits you</h2>
+          <p>Answer honestly, there are no right or wrong answers. You will get one suggestion and the reason for it.</p>
+        </header>
+
+        <div class="split">
+          <form class="card form-card" id="habit-form" novalidate>
+            <div class="banner banner--error" id="habit-options-error" role="alert" hidden>
+              <svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>
+              <p></p>
+              <button class="btn btn--secondary btn--small" type="button" data-retry-options>Retry</button>
+            </div>
+
+            <div class="field">
+              <label for="habit-exercise">How often do you exercise?</label>
+              <select id="habit-exercise" name="exercise_frequency" required disabled></select>
+              <p class="field-error" id="habit-exercise-error" hidden></p>
+            </div>
+            <div class="field">
+              <label for="habit-social">How much time do you spend on social media daily?</label>
+              <select id="habit-social" name="social_media_hours" required disabled></select>
+              <p class="field-error" id="habit-social-error" hidden></p>
+            </div>
+            <div class="field">
+              <label for="habit-stress">How would you rate your stress level?</label>
+              <select id="habit-stress" name="stress_level" required disabled></select>
+              <p class="field-error" id="habit-stress-error" hidden></p>
+            </div>
+            <div class="field">
+              <label for="habit-mindful">How often do you practise mindfulness?</label>
+              <select id="habit-mindful" name="mindfulness_frequency" required disabled></select>
+              <p class="field-error" id="habit-mindful-error" hidden></p>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn--primary" id="habit-submit" type="submit">Suggest a habit</button>
+              <button class="btn btn--ghost" id="habit-reset" type="reset">Reset</button>
+            </div>
+          </form>
+
+          <div class="result-pane" id="habit-result" aria-live="polite">
+            <div class="placeholder">
+              <svg class="icon icon--xl" aria-hidden="true"><use href="#i-sprout"/></svg>
+              <p>Your suggestion will appear here.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Music ===== -->
+      <section class="view" id="view-music" data-view="music" hidden aria-labelledby="music-title">
+        <header class="view-head">
+          <p class="eyebrow">Music Therapy</p>
+          <h2 id="music-title" tabindex="-1">Music for the moment</h2>
+          <p>Choose a mood and listen at your own pace. Nothing plays automatically.</p>
+        </header>
+
+        <form class="card form-card" id="music-form" novalidate>
+          <div class="banner banner--error" id="music-options-error" role="alert" hidden>
+            <svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>
+            <p></p>
+            <button class="btn btn--secondary btn--small" type="button" data-retry-options>Retry</button>
+          </div>
+          <fieldset class="field fieldset">
+            <legend>How would you like to feel?</legend>
+            <div class="mood-grid" id="music-moods"></div>
+            <p class="field-error" id="music-error" hidden></p>
+          </fieldset>
+          <div class="form-actions">
+            <button class="btn btn--primary" id="music-submit" type="submit" disabled>Find music</button>
+          </div>
+        </form>
+
+        <div class="results" id="music-results" aria-live="polite"></div>
+      </section>
+
+      <!-- ===== Writing ===== -->
+      <section class="view" id="view-writing" data-view="writing" hidden aria-labelledby="writing-title">
+        <header class="view-head">
+          <p class="eyebrow">Writing Therapy</p>
+          <h2 id="writing-title" tabindex="-1">A quiet page for your thoughts</h2>
+          <p>Tell us your mood and receive a gentle writing prompt. Writing about feelings can help you notice them, but it is not a replacement for professional support.</p>
+        </header>
+
+        <form class="card form-card" id="writing-form" novalidate>
+          <div class="banner banner--error" id="writing-options-error" role="alert" hidden>
+            <svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>
+            <p></p>
+            <button class="btn btn--secondary btn--small" type="button" data-retry-options>Retry</button>
+          </div>
+          <fieldset class="field fieldset">
+            <legend>How are you feeling right now?</legend>
+            <div class="mood-grid" id="writing-moods"></div>
+            <p class="field-error" id="writing-error" hidden></p>
+          </fieldset>
+          <div class="form-actions">
+            <button class="btn btn--primary" id="writing-submit" type="submit" disabled>Get a writing prompt</button>
+          </div>
+        </form>
+
+        <div class="results" id="writing-feedback" aria-live="polite"></div>
+
+        <div class="card writing-card" id="writing-result" hidden>
+          <p class="eyebrow">Your prompt</p>
+          <p class="prompt-text" id="writing-prompt"></p>
+
+          <div class="field">
+            <label for="writing-notes">Your private notes</label>
+            <textarea id="writing-notes" rows="9" placeholder="Start writing here…"></textarea>
+            <p class="note">These notes stay on this page only. They are not sent to the server or saved, so copy anything you want to keep.</p>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn--secondary" id="writing-new" type="button">Another prompt</button>
+            <button class="btn btn--ghost" id="writing-clear" type="button">Clear everything</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Habit clustering ===== -->
+      <section class="view" id="view-clusters" data-view="clusters" hidden aria-labelledby="clusters-title">
+        <header class="view-head">
+          <p class="eyebrow">Habit Clustering</p>
+          <h2 id="clusters-title" tabindex="-1">Habits for the time you have</h2>
+          <p>Habits are grouped by how long they take. Enter your free time in minutes to see which ones fit.</p>
+        </header>
+
+        <form class="card form-card" id="clusters-form" novalidate>
+          <div class="field">
+            <label for="clusters-time">Available time (minutes)</label>
+            <input id="clusters-time" name="time_available" type="number" inputmode="numeric" min="1" max="1440" step="1" placeholder="e.g. 30" required>
+            <p class="field-error" id="clusters-error" hidden></p>
+          </div>
+          <div class="chips" role="group" aria-label="Quick time choices">
+            <button class="chip" type="button" data-minutes="15">15 min</button>
+            <button class="chip" type="button" data-minutes="30">30 min</button>
+            <button class="chip" type="button" data-minutes="60">1 hour</button>
+            <button class="chip" type="button" data-minutes="90">1.5 hours</button>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn--primary" id="clusters-submit" type="submit">Show habits</button>
+          </div>
+        </form>
+
+        <div class="results" id="clusters-results" aria-live="polite"></div>
+      </section>
+
+      <!-- ===== About & status ===== -->
+      <section class="view" id="view-about" data-view="about" hidden aria-labelledby="about-title">
+        <header class="view-head">
+          <p class="eyebrow">About &amp; Status</p>
+          <h2 id="about-title" tabindex="-1">How SERENE-AI works</h2>
+          <p>A short, honest description of what each feature does.</p>
+        </header>
+
+        <div class="about-grid">
+          <article class="card">
+            <h3>What it does</h3>
+            <ul class="plain-list">
+              <li><strong>Chat:</strong> measures the tone of your message (positive, neutral or negative) and picks a prepared, supportive reply. It does not understand you the way a person does.</li>
+              <li><strong>Habit Coach:</strong> follows simple, readable rules based on your four answers and tells you which rule applied.</li>
+              <li><strong>Music:</strong> a playlist of songs tagged with your chosen mood, in random order.</li>
+              <li><strong>Writing:</strong> gives a prompt for your mood. Your notes are not analysed or stored.</li>
+              <li><strong>Habit Clustering:</strong> groups habits by the time they need and lists the ones that fit your free time.</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>Please remember</h3>
+            <p>SERENE-AI is a self-care companion for learning and reflection. It is not a medical device, it cannot diagnose or treat anything, and it has not been clinically validated.</p>
+            <p>If you are struggling, please talk to someone you trust or a qualified professional. If you might be in danger, contact your local emergency number.</p>
+          </article>
+
+          <article class="card card--wide">
+            <div class="card__head">
+              <h3>Backend connection</h3>
+              <button class="btn btn--secondary btn--small" id="about-recheck" type="button"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg> Check again</button>
+            </div>
+            <dl class="kv">
+              <div><dt>Server address</dt><dd id="about-base">–</dd></div>
+              <div><dt>Overall status</dt><dd id="about-status">–</dd></div>
+            </dl>
+            <ul class="status-list" id="about-checks" aria-label="Backend component status"></ul>
+          </article>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p>SERENE-AI · general wellness support, not medical advice.</p>
+    </footer>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" role="status" aria-live="polite" aria-atomic="false"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# Core dependencies for the SERENE-AI API (install with: pip install -r requirements.txt)
+Flask>=3.0,<4
+flask-cors>=4.0
+vaderSentiment>=3.3.2
+pandas>=2.0
+scikit-learn>=1.3
+numpy>=1.26
+# Production server (Linux/macOS only; Windows can use `python app.py` for development)
+gunicorn>=21.2; sys_platform != "win32"

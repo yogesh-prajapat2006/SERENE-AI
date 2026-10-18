@@ -1,0 +1,3 @@
+# Only needed for the command-line music player (python music_therapy.py)
+-r requirements.txt
+pygame>=2.5
